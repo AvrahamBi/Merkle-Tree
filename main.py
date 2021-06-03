@@ -1,6 +1,4 @@
 from hashlib import sha256
-
-import alg as alg
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
@@ -68,45 +66,39 @@ def function4(input, tree):
 
 
 def function5():
-    ##### Symmetric crypto #####
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=4096,
+        backend=default_backend()
+    )
+    public_key = private_key.public_key()
 
-    # key = (key1 || key2) where key1 is 128b MAC key and key2 is 128b encryption key.
-    # key is a symmetric key.
-    key = Fernet.generate_key()
+    private_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
 
-    # MAC with HMAC-SHA256:
-    cipher = Fernet(key)
+    with open('private_key.pem', 'wb') as f:
+        f.write(private_pem)
+        print(private_pem.decode("UTF-8"))
 
-    # Encryption with AES-CBC 128b:
-    token = cipher.encrypt(b"Hello")
-
-    # Decryption:
-    plaintext = cipher.decrypt(token)
-
-    #### Asymmetric crypto #####
-
-    serialization.NoEncryption()
-    # Creating sk, with common exponent and common key size.
-    # Backend is the creation library. default_backend() is a common library.
-    private_key = rsa.generate_private_key(public_exponent=65537,
-                                           key_size=2048,
-                                           backend=default_backend()
-                                           )
-
-    # Now we want to store the key in the storage so it will be available after system restart.
-    # Save sk to pramenter named pem with additional settings and security measures (like password).
-    pem = private_key.private_bytes(encoding=serialization.Encoding.PEM,
-                                    format=serialization.PrivateFormat.TraditionalOpenSSL,
-                                    encryption_algorithm=alg
-                                    )
-
-    # Write pem to sk.pem file.
-    with open("sk.pem", "wb") as f:
-        f.write(pem)
+    public_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    with open('public_key.pem', 'wb') as f:
+        f.write(public_pem)
+        print(public_pem.decode("UTF-8"))
 
 
-def function6(input):
-    print("function 6")
+def function6(input, tree):
+    hashOfRoot = tree.root.hashValue.encode("UTF-8")
+    signature = input.sign(message,
+                                 padding.PSS(
+                                    mgf = padding.MGF1(
+                                         hashes.SHA256()),
+                                     salt_length = padding.PSS.MAX_LENGTH),hashes.SHA256())
 
 def function7(input):
     print("function 7")
@@ -189,18 +181,25 @@ if __name__ == "__main__":
         # case 1
         if inputFromUser[0] == '1' and inputFromUser[1] == ' ':
             function1(inputFromUser[2:], tree)
+        # case 2
         if inputFromUser[0] == '2' and len(inputFromUser) == 1:
             function2(tree)
+        # case 3
         if inputFromUser[0] == '3' and inputFromUser[1] == ' ':
             function3(inputFromUser[2:], tree)
+        # case 4
         if inputFromUser[0] == '4' and inputFromUser[1] == ' ':
             function4(inputFromUser[2:], tree)
+        # case 5
         if (inputFromUser[0] == '5' and len(inputFromUser) == 1):
             function5()
+        # case 6
         if (inputFromUser[0] == '6' and inputFromUser[1] == ' '):
-            function6(inputFromUser)
+            function6(inputFromUser[2:], tree)
+        # case 7
         if (inputFromUser[0] == '7' and inputFromUser[1] == ' '):
             function7(inputFromUser)
+        # case 8
         if (inputFromUser[0] == '8' and inputFromUser[1] == ' '):
             function8(inputFromUser)
         if (inputFromUser[0] == '9' and len(inputFromUser) == 1):
