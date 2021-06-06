@@ -103,17 +103,115 @@ def function6(input, tree):
 def function7(input):
     print("function 7")
 
-def function8(input):
-    print("function 8")
 
-def function9(input):
-    print("function 9")
+def function8(input, spareTree):
+    spareTree.leaves.append(int(input))
+    spareTree.leaves.sort()
 
-def function10(input):
-    print("function 10")
+
+def function9(spareTree):
+    for i in spareTree.leaves:
+        i = format(i, '0256b')
+        buildTreeFromBinary(i, spareTree)
+
+    for node in spareTree.leavesNode:
+        value = '1'
+        node.hashValue = sha256(value.encode('UTF-8')).hexdigest()
+        updateHashUp(node, spareTree)
+    print(spareTree.root.hashValue)
+
+
+def travelToNodeBinary(input, tree):
+    node = tree.root
+    bin = format(input, '0256b')
+    while len(bin) != 0:
+        if int(bin[0]) == 0:
+            node = node.leftChild
+        if int(bin[0]) == 1:
+            node = node.rightChild
+        bin = bin[1:]
+    return node
+
+def function10(input, tree):
+    result = tree.root.hashValue
+    node = travelToNodeBinary(int(input), tree)
+
+
+    i = 0
+    while node.father != "null":
+        if node.father.leftChild.hashValue == node.hashValue:
+            if node.father.rightChild != "null":
+                result = result + " " + node.father.rightChild.hashValue
+            else:
+                result = result + " " + tree.hashDefaultByLevel[i]
+        else:
+            if node.father.leftChild != "null":
+                result = result + " " + node.father.leftChild.hashValue
+            else:
+                result = result + " " + tree.hashDefaultByLevel[i]
+        node = node.father
+        i = i+1
+    print(result)
 
 def function11(input):
     print("function 11")
+
+def buildTreeFromBinary(binaryNum, tree):
+    node = tree.root
+    nextNode = Node("null","null","null","null","nulll")
+    if int(binaryNum[0]) == 0 :
+        if node.leftChild == "null" :
+            node.setLeftChild(nextNode)
+        else:
+            nextNode = node.leftChild
+    else:
+        if node.rightChild == "null":
+            node.setRightChild(nextNode)
+        else:
+            nextNode = node.rightChild
+    nextNode.setParent(node)
+    binaryNum = binaryNum[1:]
+    node = nextNode
+
+    while len(binaryNum)!= 0:
+        nextNode = Node("null","null","null","null","nulll")
+
+        if int(binaryNum[0]) == 0:
+            if node.leftChild == "null":
+                node.setLeftChild(nextNode)
+            else:
+                nextNode = node.leftChild
+        else:
+            if node.rightChild == "null":
+                node.setRightChild(nextNode)
+            else:
+                nextNode = node.rightChild
+
+        binaryNum = binaryNum[1:]
+        nextNode.setParent(node)
+        node = nextNode
+        if len(binaryNum) == 0:
+            tree.leavesNode.append(node)
+
+def updateHashUp(node, spareTree):
+    i = 0 # may be 1
+    while node!=spareTree.root:
+        nodeFather = node.father
+        # null || hash
+        if (nodeFather.leftChild == "null" and nodeFather.rightChild == node):
+            value = spareTree.hashDefaultByLevel[i] + node.hashValue
+            nodeFather.hashValue = sha256(value.encode('UTF-8')).hexdigest()
+        # hash || null
+        if (nodeFather.leftChild == node and nodeFather.rightChild == "null"):
+            value = node.hashValue + spareTree.hashDefaultByLevel[i]
+            nodeFather.hashValue = sha256(value.encode('UTF-8')).hexdigest()
+        # hash || hash
+        if (nodeFather.leftChild != "null" and nodeFather.rightChild != "null"):
+            value = nodeFather.leftChild.hashValue + nodeFather.rightChild.hashValue
+            nodeFather.hashValue = sha256(value.encode('UTF-8')).hexdigest()
+
+        node = nodeFather
+        i = i+1
 
 
 class Node:
@@ -168,13 +266,28 @@ class MerkleTree:
         self.root = nodes[0]
 
 
+class SpareMerkleTree:
+    def __init__(self, root, leaves, tree):
+        self.root = Node("null","null","null","null","nulll")
+        self.leaves = []
+        self.leavesNode = []
+        self.tree = tree
+        self.hashDefaultByLevel = []
+        self.genratehashDefaultByLevel()
 
-
+    def genratehashDefaultByLevel(self):
+        value = '0'
+        for i in range(256):
+            value = value+value
+            value = sha256(value.encode('UTF-8')).hexdigest()
+            self.hashDefaultByLevel.append(value)
 
 
 
 if __name__ == "__main__":
     tree = MerkleTree("null", [])
+
+    spareTree = SpareMerkleTree("null", [], MerkleTree("null", []))
 
     while(True):
         inputFromUser = input()
@@ -198,13 +311,13 @@ if __name__ == "__main__":
             function6(inputFromUser[2:], tree)
         # case 7
         if (inputFromUser[0] == '7' and inputFromUser[1] == ' '):
-            function7(inputFromUser)
+            function7(inputFromUser[2:], spareTree)
         # case 8
         if (inputFromUser[0] == '8' and inputFromUser[1] == ' '):
-            function8(inputFromUser)
+            function8(inputFromUser[2:], spareTree)
         if (inputFromUser[0] == '9' and len(inputFromUser) == 1):
-            function9(inputFromUser)
+            function9(spareTree)
         if (inputFromUser[0] == '1' and inputFromUser[1] == '0' and inputFromUser[2] == ' '):
-            function10(inputFromUser)
+            function10(inputFromUser[3:], spareTree)
         if (inputFromUser[0] == '1' and inputFromUser[1] == '1' and inputFromUser[2] == ' '):
             function11(inputFromUser)
