@@ -14,6 +14,7 @@ def function1(input, tree):
 
 def function2(tree):
     if(tree.root == "null"):
+        print()
         return
     print (tree.root.hashValue)
 
