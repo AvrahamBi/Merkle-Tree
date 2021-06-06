@@ -93,6 +93,7 @@ def function5():
 
 
 def function6(input, tree):
+    # updated
     hashOfRoot = tree.root.hashValue.encode("UTF-8")
     signature = input.sign(message,
                                  padding.PSS(
