@@ -9,10 +9,12 @@ from cryptography import x509
 
 
 def function1(input, tree):
-    leaf = Node("null", "null", "null", "null", input)
+    leaf = Node("null", "null", "null",  input, "null")
     tree.addNewLeaf(leaf)
 
 def function2(tree):
+    if(tree.root == "null"):
+        return
     print (tree.root.hashValue)
 
 def function3(input, tree):
@@ -105,7 +107,7 @@ def function7(input):
 
 
 def function8(input, spareTree):
-    spareTree.leaves.append(int(input))
+    spareTree.leaves.append(int(input, 16))
     spareTree.leaves.sort()
 
 
@@ -116,41 +118,74 @@ def function9(spareTree):
 
     for node in spareTree.leavesNode:
         value = '1'
-        node.hashValue = sha256(value.encode('UTF-8')).hexdigest()
+        node.hashValue = '1'
         updateHashUp(node, spareTree)
-    print(spareTree.root.hashValue)
+    if(spareTree.root.hashValue =="nulll"):
+        print(spareTree.hashDefaultByLevel[256])
+    else:
+        print(spareTree.root.hashValue)
 
 
 def travelToNodeBinary(input, tree):
     node = tree.root
     bin = format(input, '0256b')
+    i = 256
     while len(bin) != 0:
         if int(bin[0]) == 0:
-            node = node.leftChild
+            if (node.leftChild != "null"):
+                node = node.leftChild
+            else:
+                node.setLeftChild(Node(node,"null","null","null",tree.hashDefaultByLevel[i]))
+                node = node.leftChild
         if int(bin[0]) == 1:
-            node = node.rightChild
+            if (node.rightChild != "null"):
+                node = node.rightChild
+            else:
+                node.setRightChild(Node(node, "null", "null", "null", tree.hashDefaultByLevel[i]))
+                node = node.rightChild
         bin = bin[1:]
+        i=i-1
+    # if input%2 == 0:
+    #     node = node.leftChild
+    # else:
+    #     node = node.rightChild
     return node
 
 def function10(input, tree):
+    if (tree.root.hashValue == "nulll"):
+        print(tree.hashDefaultByLevel[256] + " " + tree.hashDefaultByLevel[256])
+        return
+    input = int(input, 16)
     result = tree.root.hashValue
-    node = travelToNodeBinary(int(input), tree)
+    node = travelToNodeBinary(input, tree)
 
-
+    flag = 0
     i = 0
     while node.father != "null":
-        if node.father.leftChild.hashValue == node.hashValue:
+        if i + 2 < 256:
+            if node.father.hashValue == tree.hashDefaultByLevel[i+2] or  node.father.hashValue == tree.hashDefaultByLevel[i+1]:
+                node = node.father
+                i = i+1
+                flag = 1
+                continue
+        if  node.father.leftChild != "null" and node.father.leftChild.hashValue == node.hashValue:
             if node.father.rightChild != "null":
                 result = result + " " + node.father.rightChild.hashValue
             else:
-                result = result + " " + tree.hashDefaultByLevel[i]
+                result = result + " " + tree.hashDefaultByLevel[i if flag == 0 else i+1]
         else:
             if node.father.leftChild != "null":
                 result = result + " " + node.father.leftChild.hashValue
             else:
-                result = result + " " + tree.hashDefaultByLevel[i]
+                result = result + " " + tree.hashDefaultByLevel[i if flag == 0 else i+1]
         node = node.father
         i = i+1
+
+    # if flag == 1:
+    #     if node.leftChild.hashValue == tree.hashDefaultByLevel[255]:
+    #         result = result + " " + node.RightChild.hashValue
+    #     else:
+    #         result = result + " " + node.LeftChild.hashValue
     print(result)
 
 def function11(input):
@@ -209,7 +244,6 @@ def updateHashUp(node, spareTree):
         if (nodeFather.leftChild != "null" and nodeFather.rightChild != "null"):
             value = nodeFather.leftChild.hashValue + nodeFather.rightChild.hashValue
             nodeFather.hashValue = sha256(value.encode('UTF-8')).hexdigest()
-
         node = nodeFather
         i = i+1
 
@@ -240,6 +274,7 @@ class MerkleTree:
         self.leaves = []
 
     def addNewLeaf(self, leaf):
+        # leaf = sha256(leaf.encode('UTF-8')).hexdigest()
         self.leaves.append(leaf)
         self.initializeMerkleTree()
 
@@ -257,7 +292,7 @@ class MerkleTree:
                     break
                 value = node1.hashValue + node2.hashValue
                 hashValue = sha256(value.encode('UTF-8')).hexdigest()
-                print("hash value:" + hashValue)
+                # print("hash value:" + hashValue)
                 parentNode = Node("null", node1, node2, value, hashValue)
                 node1.setParent(parentNode)
                 node2.setParent(parentNode)
@@ -277,6 +312,7 @@ class SpareMerkleTree:
 
     def genratehashDefaultByLevel(self):
         value = '0'
+        self.hashDefaultByLevel.append('0')
         for i in range(256):
             value = value+value
             value = sha256(value.encode('UTF-8')).hexdigest()
