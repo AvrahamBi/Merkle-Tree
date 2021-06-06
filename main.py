@@ -22,24 +22,33 @@ def function3(input, tree):
     node = tree.leaves[int(input)]
     while node.father != "null":
         if node.father.leftChild.hashValue == node.hashValue:
-            result = result + " " + node.father.rightChild.hashValue
+            result = result + " 1" + node.father.rightChild.hashValue
         else:
-            result = result + " " + node.father.leftChild.hashValue
+            result = result + " 0" + node.father.leftChild.hashValue
         node = node.father
     print(result)
 
 
-def function4(input, tree):
+def function4(input):
     allOptionsArr = []
 
     hashesOfNodes = input.split()
-    hashesOfNodes.pop(1)
+
+    for i in range(len(hashesOfNodes)):
+        if i == 0 or i ==1:
+            continue
+        hashesOfNodes[i] = hashesOfNodes[i][1:]
+
+    rootCheck = hashesOfNodes.pop(1)
     if len(hashesOfNodes) == 1:
-        if hashesOfNodes[0] == tree.root.hashValue:
+        if hashesOfNodes[0] == rootCheck:
             print("True")
         else:
             print("False")
         return
+
+    hashesOfNodes[0] = sha256(hashesOfNodes[0].encode('UTF-8')).hexdigest()
+
     value1 = hashesOfNodes[0] + hashesOfNodes[1]
     hash1 = sha256(value1.encode('UTF-8')).hexdigest()
     allOptionsArr.append(hash1)
@@ -48,6 +57,7 @@ def function4(input, tree):
     allOptionsArr.append(hash2)
 
     hashesOfNodes.pop(0)
+
     hashesOfNodes.pop(0)
 
     for node in hashesOfNodes:
@@ -61,7 +71,7 @@ def function4(input, tree):
             temp.append(hash2)
         allOptionsArr = temp
 
-    if tree.root.hashValue in allOptionsArr:
+    if rootCheck in allOptionsArr:
         print("True")
     else:
         print("False")
@@ -190,7 +200,135 @@ def function10(input, tree):
     print(result)
 
 def function11(input):
-    print("function 11")
+    allOptionsArr = []
+
+    hashesOfNodes = input.split()
+
+    rootCheck = hashesOfNodes.pop(2)
+    # if len(hashesOfNodes) == 1:
+    #     if hashesOfNodes[0] == rootCheck:
+    #         print("True")
+    #     else:
+    #         print("False")
+    #     return
+
+    tree = SpareMerkleTree("null", [], MerkleTree("null", []))
+    node = travelToNodeBinary(int(hashesOfNodes[0], 16), tree)
+    digest = hashesOfNodes.pop(0)
+    if (hashesOfNodes.pop(0) == "0"):
+        i =0
+        while node !=  tree.root:
+            if hashesOfNodes[0] == tree.hashDefaultByLevel[i]:
+                temp = []
+                val = hashesOfNodes.pop(0)
+                val2 = hashesOfNodes.pop(0)
+                value1 = val2 + val
+                value2 = val + val2
+                hash1 = sha256(value1.encode('UTF-8')).hexdigest()
+                allOptionsArr.append(hash1)
+                hash2 = sha256(value2.encode('UTF-8')).hexdigest()
+                allOptionsArr.append(hash2)
+                while len(hashesOfNodes) != 0:
+                    temp = []
+                    node = hashesOfNodes.pop(0)
+                    for option in allOptionsArr:
+                        value1 = option + node
+                        hash1 = sha256(value1.encode('UTF-8')).hexdigest()
+                        temp.append(hash1)
+                        value2 = node + option
+                        hash2 = sha256(value2.encode('UTF-8')).hexdigest()
+                        temp.append(hash2)
+                    allOptionsArr = temp
+                if rootCheck in allOptionsArr:
+                    print("True")
+                else:
+                    print("False")
+                return
+
+            i = i+1
+
+            node = node.father
+
+    else:
+        one = "1"
+        send = sha256(one.encode('UTF-8')).hexdigest() + " " + rootCheck
+        h = ""
+        for hash in hashesOfNodes:
+            h = h + " " + hash
+        send = send + h
+
+        allOptionsArr = []
+
+        hashesOfNodes = send.split()
+
+        rootCheck = hashesOfNodes.pop(1)
+        if len(hashesOfNodes) == 1:
+            if hashesOfNodes[0] == rootCheck:
+                print("True")
+            else:
+                print("False")
+            return
+
+        hashesOfNodes[0] = sha256(hashesOfNodes[0].encode('UTF-8')).hexdigest()
+
+        value1 = hashesOfNodes[0] + hashesOfNodes[1]
+        hash1 = sha256(value1.encode('UTF-8')).hexdigest()
+        allOptionsArr.append(hash1)
+        value2 = hashesOfNodes[1] + hashesOfNodes[0]
+        hash2 = sha256(value2.encode('UTF-8')).hexdigest()
+        allOptionsArr.append(hash2)
+
+        hashesOfNodes.pop(0)
+
+        hashesOfNodes.pop(0)
+
+        for node in hashesOfNodes:
+            temp = []
+            for option in allOptionsArr:
+                value1 = option + node
+                hash1 = sha256(value1.encode('UTF-8')).hexdigest()
+                temp.append(hash1)
+                value2 = node + option
+                hash2 = sha256(value2.encode('UTF-8')).hexdigest()
+                temp.append(hash2)
+            allOptionsArr = temp
+
+        if rootCheck in allOptionsArr:
+            print("True")
+        else:
+            print("False")
+
+
+
+    #
+    # hashesOfNodes[0] = sha256(hashesOfNodes[0].encode('UTF-8')).hexdigest()
+    #
+    # value1 = hashesOfNodes[0] + hashesOfNodes[1]
+    # hash1 = sha256(value1.encode('UTF-8')).hexdigest()
+    # allOptionsArr.append(hash1)
+    # value2 = hashesOfNodes[1] + hashesOfNodes[0]
+    # hash2 = sha256(value2.encode('UTF-8')).hexdigest()
+    # allOptionsArr.append(hash2)
+    #
+    # hashesOfNodes.pop(0)
+    #
+    # hashesOfNodes.pop(0)
+    #
+    # for node in hashesOfNodes:
+    #     temp = []
+    #     for option in allOptionsArr:
+    #         value1 = option + node
+    #         hash1 = sha256(value1.encode('UTF-8')).hexdigest()
+    #         temp.append(hash1)
+    #         value2 = node + option
+    #         hash2 = sha256(value2.encode('UTF-8')).hexdigest()
+    #         temp.append(hash2)
+    #     allOptionsArr = temp
+    #
+    # if rootCheck in allOptionsArr:
+    #     print("True")
+    # else:
+    #     print("False")
 
 def buildTreeFromBinary(binaryNum, tree):
     node = tree.root
@@ -339,7 +477,7 @@ if __name__ == "__main__":
             function3(inputFromUser[2:], tree)
         # case 4
         if inputFromUser[0] == '4' and inputFromUser[1] == ' ':
-            function4(inputFromUser[2:], tree)
+            function4(inputFromUser[2:])
         # case 5
         if (inputFromUser[0] == '5' and len(inputFromUser) == 1):
             function5()
@@ -357,4 +495,4 @@ if __name__ == "__main__":
         if (inputFromUser[0] == '1' and inputFromUser[1] == '0' and inputFromUser[2] == ' '):
             function10(inputFromUser[3:], spareTree)
         if (inputFromUser[0] == '1' and inputFromUser[1] == '1' and inputFromUser[2] == ' '):
-            function11(inputFromUser)
+            function11(inputFromUser[3:])
