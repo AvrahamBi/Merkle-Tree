@@ -109,15 +109,23 @@ def function6(givenKey, tree):
                                  )
     print(base64.b64encode(signature).decode())
 
-def function7(input):
+def function7(key, signature, textToVerify):
+    signature = base64.decodebytes(signature.encode())
+    textToVerify = textToVerify.encode()
+    key = key.encode()
+    publicKey = serialization.load_pem_public_key(key)
     # Verifying -- with the same mgf (padding), salt and hash.
-    public_key.verify(signature, message,
-                      padding.PSS(
-                          mgf=padding.MGF1(hashes.SHA256()),
-                          salt_length=padding.PSS.MAX_LENGTH
-                      ),
-                      hashes.SHA256()
-                      )
+    try:
+        publicKey.verify(signature, textToVerify,
+                         padding.PSS(
+                             mgf=padding.MGF1(hashes.SHA256()),
+                             salt_length=padding.PSS.MAX_LENGTH
+                         ),
+                         hashes.SHA256()
+                         )
+        print("True")
+    except :
+        print("False")
 
 def function8(input):
     print("function 8")
@@ -219,9 +227,20 @@ if __name__ == "__main__":
             text = "-----BEGIN RSA PRIVATE KEY-----\n" + text
             text = text[:-1]
             function6(text, tree)
+
         # case 7
-        if (inputFromUser[0] == '7' and inputFromUser[1] == ' '):
-            function7(inputFromUser)
+        if (inputFromUser[0] == '7'):
+            # get the key from user
+            inpt = input()
+            text = inpt + '\n'
+            while inpt != "-----END PUBLIC KEY-----":
+                inpt = input()
+                text = text + inpt + '\n'
+            text = "-----BEGIN PUBLIC KEY-----\n" + text
+            text = text[:-1]
+            temp = input()
+            signature = input().split()
+            function7(text, signature[0], signature[1])
         # case 8
         if (inputFromUser[0] == '8' and inputFromUser[1] == ' '):
             function8(inputFromUser)
