@@ -1,3 +1,4 @@
+import base64
 from hashlib import sha256
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -92,17 +93,30 @@ def function5():
         print(public_pem.decode("UTF-8"))
 
 
-def function6(input, tree):
-    # updated
-    hashOfRoot = tree.root.hashValue.encode("UTF-8")
-    signature = input.sign(message,
-                                 padding.PSS(
-                                    mgf = padding.MGF1(
-                                         hashes.SHA256()),
-                                     salt_length = padding.PSS.MAX_LENGTH),hashes.SHA256())
-
+def function6(givenKey, tree):
+    # convert toe ket to bytes
+    givenKey = givenKey.encode()
+    # get the private key
+    private_key = serialization.load_pem_private_key(givenKey, password=None)
+    # convert the tree root to bytes
+    message = tree.root.hashValue.encode("UTF-8")
+    # signing the root with the given key
+    signature = private_key.sign(message,
+                                 padding.PSS(mgf=padding.MGF1(hashes.SHA256()),
+                                             salt_length=padding.PSS.MAX_LENGTH
+                                             ),
+                                 hashes.SHA256()
+                                 )
+    print(base64.b64encode(siganture))
 def function7(input):
-    print("function 7")
+    # Verifying -- with the same mgf (padding), salt and hash.
+    public_key.verify(signature, message,
+                      padding.PSS(
+                          mgf=padding.MGF1(hashes.SHA256()),
+                          salt_length=padding.PSS.MAX_LENGTH
+                      ),
+                      hashes.SHA256()
+                      )
 
 def function8(input):
     print("function 8")
@@ -160,7 +174,7 @@ class MerkleTree:
                     break
                 value = node1.hashValue + node2.hashValue
                 hashValue = sha256(value.encode('UTF-8')).hexdigest()
-                print("hash value:" + hashValue)
+                print("hash value:" + hashValue) # todo maybe should remoive this print
                 parentNode = Node("null", node1, node2, value, hashValue)
                 node1.setParent(parentNode)
                 node2.setParent(parentNode)
