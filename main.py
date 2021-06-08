@@ -1,14 +1,12 @@
 # Avraham Bar Ilan, 205937949, Omer Eckstein, 312350192
+
 import base64
-import sys
 from hashlib import sha256
-from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography import x509
 
 def function1(input, tree):
     leaf = Node("null", "null", "null",  input, "null")
@@ -122,6 +120,7 @@ def function6(givenKey, tree):
                                  hashes.SHA256()
                                  )
     print(base64.b64encode(signature).decode())
+    return
 
 def function7(key, signature, textToVerify):
     signature = base64.decodebytes(signature.encode())
@@ -181,10 +180,6 @@ def travelToNodeBinary(input, tree):
                 node = node.rightChild
         bin = bin[1:]
         i=i-1
-    # if input%2 == 0:
-    #     node = node.leftChild
-    # else:
-    #     node = node.rightChild
     return node
 
 def function10(input, tree):
@@ -258,7 +253,6 @@ def function11(input):
                 return
 
             i = i+1
-
             node = node.father
 
     else:
@@ -413,7 +407,6 @@ class MerkleTree:
                     break
                 value = node1.hashValue + node2.hashValue
                 hashValue = sha256(value.encode('UTF-8')).hexdigest()
-                # print("hash value:" + hashValue)
                 parentNode = Node("null", node1, node2, value, hashValue)
                 node1.setParent(parentNode)
                 node2.setParent(parentNode)
@@ -446,7 +439,11 @@ if __name__ == "__main__":
     spareTree = SpareMerkleTree("null", [], MerkleTree("null", []))
 
     while(True):
+
         inputFromUser = input()
+        if inputFromUser == None or inputFromUser == "":
+            continue
+
         # case 1
         if inputFromUser[0] == '1' and inputFromUser[1] == ' ':
             function1(inputFromUser[2:], tree)
@@ -472,7 +469,9 @@ if __name__ == "__main__":
             text = "-----BEGIN RSA PRIVATE KEY-----\n" + text
             text = text[:-1]
             function6(text, tree)
+            continue
             # case 7
+
         if (inputFromUser[0] == '7'):
             # get the key from user
             inpt = input()
