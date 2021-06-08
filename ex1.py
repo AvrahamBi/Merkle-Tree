@@ -1,5 +1,6 @@
 # Avraham Bar Ilan, 205937949, Omer Eckstein, 312350192
 import base64
+import sys
 from hashlib import sha256
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.asymmetric import rsa
