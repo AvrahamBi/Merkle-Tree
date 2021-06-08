@@ -137,7 +137,7 @@ def function7(key, signature, textToVerify):
                          hashes.SHA256()
                          )
         print("True")
-    except :
+    except:
         print("False")
 
 
