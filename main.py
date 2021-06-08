@@ -1,12 +1,12 @@
+# Avraham Bar Ilan, 205937949, Omer Eckstein, 312350192
+
+import base64
 from hashlib import sha256
-from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography import x509
-
 
 def function1(input, tree):
     leaf = Node("null", "null", "null",  input, "null")
@@ -16,7 +16,7 @@ def function2(tree):
     if(tree.root == "null"):
         print()
         return
-    print (tree.root.hashValue)
+    print(tree.root.hashValue)
 
 def function3(input, tree):
     result = tree.root.hashValue
@@ -105,16 +105,40 @@ def function5():
         print(public_pem.decode("UTF-8"))
 
 
-def function6(input, tree):
-    hashOfRoot = tree.root.hashValue.encode("UTF-8")
-    signature = input.sign(message,
-                                 padding.PSS(
-                                    mgf = padding.MGF1(
-                                         hashes.SHA256()),
-                                     salt_length = padding.PSS.MAX_LENGTH),hashes.SHA256())
+def function6(givenKey, tree):
+    # convert toe ket to bytes
+    givenKey = givenKey.encode()
+    # get the private key
+    private_key = serialization.load_pem_private_key(givenKey, password=None)
+    # convert the tree root to bytes
+    message = tree.root.hashValue.encode()
+    # signing the root with the given key
+    signature = private_key.sign(message,
+                                 padding.PSS(mgf=padding.MGF1(hashes.SHA256()),
+                                             salt_length=padding.PSS.MAX_LENGTH
+                                             ),
+                                 hashes.SHA256()
+                                 )
+    print(base64.b64encode(signature).decode())
+    return
 
-def function7(input):
-    print("function 7")
+def function7(key, signature, textToVerify):
+    signature = base64.decodebytes(signature.encode())
+    textToVerify = textToVerify.encode()
+    key = key.encode()
+    publicKey = serialization.load_pem_public_key(key)
+    # Verifying -- with the same mgf (padding), salt and hash.
+    try:
+        publicKey.verify(signature, textToVerify,
+                         padding.PSS(
+                             mgf=padding.MGF1(hashes.SHA256()),
+                             salt_length=padding.PSS.MAX_LENGTH
+                         ),
+                         hashes.SHA256()
+                         )
+        print("True")
+    except:
+        print("False")
 
 
 def function8(input, spareTree):
@@ -156,10 +180,6 @@ def travelToNodeBinary(input, tree):
                 node = node.rightChild
         bin = bin[1:]
         i=i-1
-    # if input%2 == 0:
-    #     node = node.leftChild
-    # else:
-    #     node = node.rightChild
     return node
 
 def function10(input, tree):
@@ -179,7 +199,7 @@ def function10(input, tree):
                 i = i+1
                 flag = 1
                 continue
-        if  node.father.leftChild != "null" and node.father.leftChild.hashValue == node.hashValue:
+        if node.father.leftChild != "null" and node.father.leftChild.hashValue == node.hashValue:
             if node.father.rightChild != "null":
                 result = result + " " + node.father.rightChild.hashValue
             else:
@@ -191,12 +211,6 @@ def function10(input, tree):
                 result = result + " " + tree.hashDefaultByLevel[i if flag == 0 else i+1]
         node = node.father
         i = i+1
-
-    # if flag == 1:
-    #     if node.leftChild.hashValue == tree.hashDefaultByLevel[255]:
-    #         result = result + " " + node.RightChild.hashValue
-    #     else:
-    #         result = result + " " + node.LeftChild.hashValue
     print(result)
 
 def function11(input):
@@ -205,13 +219,6 @@ def function11(input):
     hashesOfNodes = input.split()
 
     rootCheck = hashesOfNodes.pop(2)
-    # if len(hashesOfNodes) == 1:
-    #     if hashesOfNodes[0] == rootCheck:
-    #         print("True")
-    #     else:
-    #         print("False")
-    #     return
-
     tree = SpareMerkleTree("null", [], MerkleTree("null", []))
     node = travelToNodeBinary(int(hashesOfNodes[0], 16), tree)
     digest = hashesOfNodes.pop(0)
@@ -246,7 +253,6 @@ def function11(input):
                 return
 
             i = i+1
-
             node = node.father
 
     else:
@@ -299,37 +305,6 @@ def function11(input):
             print("False")
 
 
-
-    #
-    # hashesOfNodes[0] = sha256(hashesOfNodes[0].encode('UTF-8')).hexdigest()
-    #
-    # value1 = hashesOfNodes[0] + hashesOfNodes[1]
-    # hash1 = sha256(value1.encode('UTF-8')).hexdigest()
-    # allOptionsArr.append(hash1)
-    # value2 = hashesOfNodes[1] + hashesOfNodes[0]
-    # hash2 = sha256(value2.encode('UTF-8')).hexdigest()
-    # allOptionsArr.append(hash2)
-    #
-    # hashesOfNodes.pop(0)
-    #
-    # hashesOfNodes.pop(0)
-    #
-    # for node in hashesOfNodes:
-    #     temp = []
-    #     for option in allOptionsArr:
-    #         value1 = option + node
-    #         hash1 = sha256(value1.encode('UTF-8')).hexdigest()
-    #         temp.append(hash1)
-    #         value2 = node + option
-    #         hash2 = sha256(value2.encode('UTF-8')).hexdigest()
-    #         temp.append(hash2)
-    #     allOptionsArr = temp
-    #
-    # if rootCheck in allOptionsArr:
-    #     print("True")
-    # else:
-    #     print("False")
-
 def buildTreeFromBinary(binaryNum, tree):
     node = tree.root
     nextNode = Node("null","null","null","null","nulll")
@@ -368,7 +343,7 @@ def buildTreeFromBinary(binaryNum, tree):
             tree.leavesNode.append(node)
 
 def updateHashUp(node, spareTree):
-    i = 0 # may be 1
+    i = 0  # may be 1
     while node!=spareTree.root:
         nodeFather = node.father
         # null || hash
@@ -407,6 +382,7 @@ class Node:
     def setParent(self, parent):
         self.father = parent
 
+
 class MerkleTree:
     def __init__(self, root, leaves):
         self.root = root
@@ -431,7 +407,6 @@ class MerkleTree:
                     break
                 value = node1.hashValue + node2.hashValue
                 hashValue = sha256(value.encode('UTF-8')).hexdigest()
-                # print("hash value:" + hashValue)
                 parentNode = Node("null", node1, node2, value, hashValue)
                 node1.setParent(parentNode)
                 node2.setParent(parentNode)
@@ -458,14 +433,17 @@ class SpareMerkleTree:
             self.hashDefaultByLevel.append(value)
 
 
-
 if __name__ == "__main__":
     tree = MerkleTree("null", [])
 
     spareTree = SpareMerkleTree("null", [], MerkleTree("null", []))
 
     while(True):
+
         inputFromUser = input()
+        if inputFromUser == None or inputFromUser == "":
+            continue
+
         # case 1
         if inputFromUser[0] == '1' and inputFromUser[1] == ' ':
             function1(inputFromUser[2:], tree)
@@ -481,12 +459,31 @@ if __name__ == "__main__":
         # case 5
         if (inputFromUser[0] == '5' and len(inputFromUser) == 1):
             function5()
-        # case 6
-        if (inputFromUser[0] == '6' and inputFromUser[1] == ' '):
-            function6(inputFromUser[2:], tree)
-        # case 7
-        if (inputFromUser[0] == '7' and inputFromUser[1] == ' '):
-            function7(inputFromUser[2:], spareTree)
+
+        if (inputFromUser[0] == '6'):
+            inpt = input()
+            text = inpt + '\n'
+            while inpt != "-----END RSA PRIVATE KEY-----":
+                inpt = input()
+                text = text + inpt + '\n'
+            text = "-----BEGIN RSA PRIVATE KEY-----\n" + text
+            text = text[:-1]
+            function6(text, tree)
+            continue
+            # case 7
+
+        if (inputFromUser[0] == '7'):
+            # get the key from user
+            inpt = input()
+            text = inpt + '\n'
+            while inpt != "-----END PUBLIC KEY-----":
+                inpt = input()
+                text = text + inpt + '\n'
+            text = "-----BEGIN PUBLIC KEY-----\n" + text
+            text = text[:-1]
+            temp = input()
+            signature = input().split()
+            function7(text, signature[0], signature[1])
         # case 8
         if (inputFromUser[0] == '8' and inputFromUser[1] == ' '):
             function8(inputFromUser[2:], spareTree)
