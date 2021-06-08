@@ -1,12 +1,13 @@
 # Avraham Bar Ilan, 205937949, Omer Eckstein, 312350192
 import base64
 from hashlib import sha256
+from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-
+from cryptography import x509
 
 def function1(input, tree):
     leaf = Node("null", "null", "null",  input, "null")
@@ -16,7 +17,7 @@ def function2(tree):
     if(tree.root == "null"):
         print()
         return
-    print (tree.root.hashValue)
+    print(tree.root.hashValue)
 
 def function3(input, tree):
     result = tree.root.hashValue
@@ -202,7 +203,7 @@ def function10(input, tree):
                 i = i+1
                 flag = 1
                 continue
-        if  node.father.leftChild != "null" and node.father.leftChild.hashValue == node.hashValue:
+        if node.father.leftChild != "null" and node.father.leftChild.hashValue == node.hashValue:
             if node.father.rightChild != "null":
                 result = result + " " + node.father.rightChild.hashValue
             else:
@@ -214,12 +215,6 @@ def function10(input, tree):
                 result = result + " " + tree.hashDefaultByLevel[i if flag == 0 else i+1]
         node = node.father
         i = i+1
-
-    # if flag == 1:
-    #     if node.leftChild.hashValue == tree.hashDefaultByLevel[255]:
-    #         result = result + " " + node.RightChild.hashValue
-    #     else:
-    #         result = result + " " + node.LeftChild.hashValue
     print(result)
 
 def function11(input):
@@ -228,13 +223,6 @@ def function11(input):
     hashesOfNodes = input.split()
 
     rootCheck = hashesOfNodes.pop(2)
-    # if len(hashesOfNodes) == 1:
-    #     if hashesOfNodes[0] == rootCheck:
-    #         print("True")
-    #     else:
-    #         print("False")
-    #     return
-
     tree = SpareMerkleTree("null", [], MerkleTree("null", []))
     node = travelToNodeBinary(int(hashesOfNodes[0], 16), tree)
     digest = hashesOfNodes.pop(0)
@@ -360,7 +348,7 @@ def buildTreeFromBinary(binaryNum, tree):
             tree.leavesNode.append(node)
 
 def updateHashUp(node, spareTree):
-    i = 0 # may be 1
+    i = 0  # may be 1
     while node!=spareTree.root:
         nodeFather = node.father
         # null || hash
@@ -398,6 +386,7 @@ class Node:
 
     def setParent(self, parent):
         self.father = parent
+
 
 class MerkleTree:
     def __init__(self, root, leaves):
@@ -448,7 +437,6 @@ class SpareMerkleTree:
             value = value+value
             value = sha256(value.encode('UTF-8')).hexdigest()
             self.hashDefaultByLevel.append(value)
-
 
 
 if __name__ == "__main__":
