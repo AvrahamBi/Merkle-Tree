@@ -105,6 +105,7 @@ def function5():
         print(public_pem.decode("UTF-8"))
 
 
+
 def function6(givenKey, tree):
     # convert toe ket to bytes
     givenKey = givenKey.encode()
@@ -139,6 +140,18 @@ def function7(key, signature, textToVerify):
         print("True")
     except:
         print("False")
+=======
+def function6(input, tree):
+    # updated
+    hashOfRoot = tree.root.hashValue.encode("UTF-8")
+    signature = input.sign(message,
+                                 padding.PSS(
+                                    mgf = padding.MGF1(
+                                         hashes.SHA256()),
+                                     salt_length = padding.PSS.MAX_LENGTH),hashes.SHA256())
+
+def function7(input):
+    print("function 7")
 
 
 def function8(input, spareTree):
